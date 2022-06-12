@@ -1,0 +1,6 @@
+#!/bin/bash
+INSTANCE=$1;
+set -e;
+
+docker-compose -p $INSTANCE -f "$HOME/dockers/$INSTANCE/docker-compose.yml" up -d --build;
+
