@@ -1,0 +1,6 @@
+#!/bin/bash
+INSTANCE=$1;
+DB=$2;
+set -e;
+
+docker exec -it $INSTANCE /usr/bin/odoo --no-http --db_host db --db_port 5432 --db_user odoo --db_password odoo --stop-after-init -d $DB ${@:3}

@@ -1,0 +1,10 @@
+#!/bin/bash
+INSTANCE=$1;
+DB=$2;
+# user=$3 TOD0: if root, run as admin
+
+set -e;
+
+
+
+docker exec -it $INSTANCE\_db psql -U odoo -d $DB;

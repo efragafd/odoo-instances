@@ -1,0 +1,6 @@
+#!/bin/bash
+INSTANCE=$1;
+set -e;
+
+docker stop $INSTANCE;
+docker stop $INSTANCE"_db";

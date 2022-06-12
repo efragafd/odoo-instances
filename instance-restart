@@ -1,0 +1,8 @@
+#!/bin/bash
+SCRIPT=`realpath $0`;
+SCRIPTPATH=`dirname $SCRIPT`;
+INSTANCE=$1;
+set -e;
+
+$SCRIPTPATH/instance-stop $INSTANCE;
+$SCRIPTPATH/instance-up $INSTANCE;

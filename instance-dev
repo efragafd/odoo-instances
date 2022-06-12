@@ -1,0 +1,12 @@
+#!/bin/bash
+INSTANCE=$1;
+set -e;
+
+# 13.0
+# docker exec -it $INSTANCE odoo --http-port 8070 --db_host db --db_port 5432 --db_user odoo --db_password odoo ${@:2} ||
+# 10.0
+# docker exec -it $INSTANCE odoo --xmlrpc-port 8070 --db_host db --db_port 5432 --db_user odoo --db_password odoo ${@:2} ||
+# 8.0
+# docker exec -it $INSTANCE odoo.py --xmlrpc-port 8070 --db_host db --db_port 5432 --db_user odoo --db_password odoo ${@:2};
+# 14.0
+docker exec -it $INSTANCE odoo --http-port 8070 --db_host db --db_port 5432 --db_user odoo --db_password odoo

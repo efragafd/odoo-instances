@@ -1,0 +1,5 @@
+#!/bin/bash
+INSTANCE=$1;
+set -e;
+
+docker exec -it $INSTANCE bash;

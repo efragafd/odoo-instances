@@ -1,0 +1,12 @@
+#!/bin/bash
+INSTANCE=$1;
+DB=$2;
+set -e;
+
+if [ -z $DB ]; then
+    NAME=$INSTANCE;
+else
+    NAME=$INSTANCE"_db";
+fi
+
+docker ps -a --filter name=^/$NAME$ --format '{"name": "{{.Names}}", "status": "{{.Status}}"}' | sed '$!s/$/,/';
