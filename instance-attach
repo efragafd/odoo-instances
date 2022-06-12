@@ -2,4 +2,4 @@
 INSTANCE=$1;
 set -e;
 
-docker exec -it $INSTANCE bash;
+docker exec -u root -it $INSTANCE bash;
