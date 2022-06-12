@@ -1,0 +1,5 @@
+INSTANCE=$1;
+MODULE=$2;
+set -e;
+
+code $HOME/dockers/$INSTANCE/addons/$MODULE
