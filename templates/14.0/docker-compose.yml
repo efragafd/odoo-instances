@@ -12,6 +12,7 @@ services:
       - ./addons:/mnt/extra-addons
     ports:
       - "8069:8069"
+      - "8070:8069"
     networks:
       - nginx-proxy
       - internal
