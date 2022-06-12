@@ -1,0 +1,4 @@
+INSTANCE=$1;
+set -e;
+
+code $HOME/dockers/$INSTANCE
