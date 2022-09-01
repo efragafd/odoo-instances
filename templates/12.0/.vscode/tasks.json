@@ -1,0 +1,89 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "docker up",
+      "type": "shell",
+      "command": "docker-compose up -d",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "docker restart web",
+      "type": "shell",
+      "dependsOn": ["docker up"],
+      "command": "docker-compose restart web",
+      "presentation": {
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated",
+        "showReuseMessage": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "docker stop",
+      "type": "shell",
+      "command": "docker-compose stop",
+      "problemMatcher": []
+    },
+    {
+      "label": "module update",
+      "dependsOn": ["docker up"],
+      "problemMatcher": [],
+      "command": "docker-compose",
+      "promptOnClose": true,
+      "args": [
+        "exec",
+        "web",
+        "/usr/bin/odoo",
+        "--db_host",
+        "db",
+        "--db_port",
+        "5432",
+        "--db_user",
+        "odoo",
+        "--db_password",
+        "odoo",
+        "--stop-after-init"
+        // "-d",
+        // "",
+        // "-u",
+        // "",
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "showReuseMessage": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "update&restart",
+      "type": "shell",
+      "dependsOn": ["module update", "docker restart web"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "database",
+      "type": "promptString",
+      "description": "Database",
+      "default": "demo"
+    },
+    {
+      "id": "module",
+      "type": "promptString",
+      "description": "Module"
+    }
+  ]
+}
