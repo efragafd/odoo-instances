@@ -6,3 +6,6 @@ set -e;
 docker exec -u root -it $INSTANCE /usr/bin/odoo scaffold $MODULE_NAME /mnt/extra-addons
 
 sudo chown $(whoami):$(whoami) -R $HOME/dockers/$INSTANCE/addons/$MODULE_NAME/
+
+# copy recursively from templates folders the necessary items
+sudo cp -r $HOME/dockers/$INSTANCE/.vscode $HOME/dockers/$INSTANCE/addons/$MODULE_NAME/
