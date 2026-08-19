@@ -1,6 +1,6 @@
 # Migration Plan: unify `odoo-server-instances` into `odoo-instances`
 
-Status: **in progress** — Phase 5 complete, awaiting go-ahead on Phase 6
+Status: **in progress** — Phase 6 complete, awaiting go-ahead on Phase 7 (final phase)
 Drafted: 2026-08-19
 Scope: merge the VPS deployment tooling into this repo, modernize the runtime, add Odoo 17/18/19, and document everything.
 
@@ -183,15 +183,17 @@ Also retired `server/new`, `server/odoo-postgres.yml`, `server/user-data`, and `
 
 | File | Contents |
 |---|---|
-| `README.md` | What this is, the two modes, a 5-minute quickstart for each |
-| `docs/tools-reference.md` | Every `instance-*` script: synopsis, args, what it touches, exit codes. **Does not exist today in any form.** |
-| `docs/local-development.md` | Create instance → scaffold module → attach VS Code debugger → update module |
-| `docs/server-deployment.md` | End-to-end GCE runbook, `gcloud compute instances create` through TLS-served Odoo |
-| `docs/version-matrix.md` | Odoo ↔ PostgreSQL ↔ Python ↔ base image, per supported version |
-| `docs/backup-restore.md` | Backup schedule, restore drill |
-| `docs/troubleshooting.md` | Common failures and their causes |
+| `README.md` | ✅ What this is, the two modes, a 5-minute quickstart for each |
+| `docs/tools-reference.md` | ✅ Generated from every script's own `--help` — see below |
+| `docs/local-development.md` | ✅ Create instance → scaffold module → attach VS Code debugger → update module |
+| `docs/server-deployment.md` | ✅ End-to-end GCE runbook, `gcloud compute instances create` through TLS-served Odoo |
+| `docs/version-matrix.md` | ✅ Odoo ↔ PostgreSQL ↔ base image, per supported version — states what was directly verified vs. corroborated-not-reverified rather than presenting both the same way |
+| `docs/backup-restore.md` | ✅ Backup schedule, a runnable restore drill, off-box copy guidance |
+| `docs/troubleshooting.md` | ✅ Failures actually hit while building this repo, plus ones that follow from the design |
 
-- [ ] Add `--help` to every script and generate `tools-reference.md` from it so the docs cannot drift from the code
+- [x] Add `--help` to every script (17 total) and generate `tools-reference.md` from it (`bin/_generate-tools-reference.sh`) so the docs cannot drift from the code. Found and fixed two real bugs while doing this, both in code this phase's docs directly describe:
+  - `instance-new`'s argument parser infinite-looped on an unknown flag (a `case` branch with no `shift`/`exit`) — confirmed with `timeout` before and after the fix
+  - `templates/_common/.vscode/tasks.json` still called the removed `docker-compose` v1 binary (missed in Phase 1 — the grep there only checked scripts, not this JSON file) **and** its bare `docker-compose up -d` couldn't have found a compose file at all since Phase 2 replaced the per-instance file with the centralized base+overlay scheme — every debugger-attach task in it was non-functional. Rewritten to delegate to `instance-up`/`instance-stop`/`instance-exec-odoo` via `${workspaceFolderBasename}` instead of reimplementing compose invocation in JSON.
 
 ### Phase 7 — verification
 
