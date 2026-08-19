@@ -2,6 +2,6 @@
 INSTANCE=$1;
 set -e;
 
-docker-compose -p $INSTANCE -f "$HOME/dockers/$INSTANCE/docker-compose.yml" up -d --build;
+docker compose -p $INSTANCE -f "$HOME/dockers/$INSTANCE/docker-compose.yml" up -d --build;
 
 echo "Instance '$INSTANCE' is up and on debug mode"

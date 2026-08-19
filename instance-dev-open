@@ -2,8 +2,19 @@
 INSTANCE=$1;
 set -e;
 
-# IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $INSTANCE);
-# echo $IP
-wslview http://localhost:8069
-# wslview http://$IP:8069
+URL="http://localhost:8069"
 
+if command -v wslview >/dev/null 2>&1; then
+    # WSL
+    wslview "$URL"
+elif command -v xdg-open >/dev/null 2>&1; then
+    # Linux
+    xdg-open "$URL"
+elif command -v open >/dev/null 2>&1; then
+    # macOS
+    open "$URL"
+else
+    echo "No known browser-opener found (tried wslview, xdg-open, open)." >&2
+    echo "Open manually: $URL" >&2
+    exit 1
+fi

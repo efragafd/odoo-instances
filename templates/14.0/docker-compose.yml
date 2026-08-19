@@ -1,4 +1,3 @@
-version: '3.3'
 services:
   web:
     image: odoo:14.0
@@ -12,7 +11,7 @@ services:
       - ./addons:/mnt/extra-addons
     ports:
       - "8069:8069"
-      - "8070:8069"
+      - "8070:8070"
     networks:
       - nginx-proxy
       - internal
