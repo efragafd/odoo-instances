@@ -1,6 +1,6 @@
 # Migration Plan: unify `odoo-server-instances` into `odoo-instances`
 
-Status: **in progress** — Phase 4 complete, awaiting go-ahead on Phase 5
+Status: **in progress** — Phase 5 complete, awaiting go-ahead on Phase 6
 Drafted: 2026-08-19
 Scope: merge the VPS deployment tooling into this repo, modernize the runtime, add Odoo 17/18/19, and document everything.
 
@@ -168,14 +168,16 @@ Verified: `odoo:19.0`, `odoo:18.0`, `odoo:17.0` all exist on Docker Hub (19.0 la
 
 ### Phase 5 — GCE bootstrap
 
-- [ ] Rewrite `user-data` → `server/bootstrap/gce-startup.sh`. GCE reads the **`startup-script`** metadata key; `user-data` (cloud-init) only works on some images. Target Ubuntu 24.04 LTS + `startup-script`.
-- [ ] Document the surrounding GCP setup:
+- [x] Rewrite `user-data` → `server/bootstrap/gce-startup.sh`, targeting the **`startup-script`** metadata key on Ubuntu 24.04 LTS. GCE re-runs `startup-script` on *every* boot (unlike cloud-init's `user-data`, which normally runs once) — every step (apt installs, swap file, `git pull`/clone, `docker compose up -d`, instance creation) is written to be idempotent, not just a one-shot port of the old script. Calls `bin/instance-new --profile server` directly instead of the old curl-and-sed flow, and reads per-instance config from GCE metadata instead of a hardcoded client domain/instance name.
+- [x] Document the surrounding GCP setup (`server/bootstrap/README.md`):
   - static external IP
   - DNS A record **before** first boot (Let's Encrypt needs resolvable DNS)
-  - firewall: 80/443 only; SSH via IAP rather than an open 22
-  - `e2-medium` (2 vCPU / 4 GB) minimum for one Odoo + PG
-  - 30 GB+ disk, swap file
-- [ ] Reconsider the Portainer agent on 9000/9001 — currently started with no firewall story at all
+  - firewall: 80/443 only; SSH via IAP rather than an open 22 — IAP source range `35.235.240.0/20` verified against Google's own docs, plus a reminder to delete the default `default-allow-ssh` rule most GCP projects ship with (it undoes the IAP-only restriction otherwise)
+  - `e2-medium` (2 vCPU / 4 GB) minimum for one Odoo + PG, 30 GB+ disk
+  - 2 GB swap file, created idempotently by the script itself
+- [x] Reconsider the Portainer agent on 9000/9001 (no firewall story at all): dropped it from the default script entirely rather than trying to patch around the exposure inside the boot script (firewall rules are a VPC-level concern the script can't fix on its own); documented as an explicit, separately-firewalled opt-in instead
+
+Also retired `server/new`, `server/odoo-postgres.yml`, `server/user-data`, and `server/images/` (fully superseded by `gce-startup.sh` calling `instance-new` directly), and relocated `nginx-proxy-le.yml` to `server/proxy/compose.yml` per the target layout, with its `client_max_body_size.conf` now a tracked file instead of something the boot script `echo`'d into existence.
 
 ### Phase 6 — documentation
 
