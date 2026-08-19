@@ -1,0 +1,13 @@
+# Local instance with a debugpy-enabled image for VS Code "attach" debugging.
+# Requires templates/<version>/odoo_debug/Dockerfile, copied into the
+# instance directory by instance-new.
+services:
+  web:
+    image: odoo_debug:${ODOO_VERSION}
+    build:
+      context: ./odoo_debug
+      target: debug
+    ports:
+      - "8069:8069"
+      - "8070:8070"
+      - "5678:5678"

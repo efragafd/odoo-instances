@@ -1,0 +1,93 @@
+#!/bin/bash
+set -e
+
+SCRIPTPATH=$(cd "$(dirname "$0")" && pwd)
+REPO_ROOT=$(dirname "$SCRIPTPATH")
+
+usage() {
+    cat >&2 <<USAGE
+USAGE: instance-new INSTANCE VERSION [options]
+
+  --profile local|dev|server   default: dev
+                                  local   published ports, no debugger
+                                  dev     local + debugpy attach on :5678
+                                  server  restart=always, named addons
+                                          volume, nginx-proxy vhost
+  --postgres-version VERSION   default: 13.0
+  --domain DOMAIN               required for --profile server
+  --contact EMAIL                required for --profile server
+USAGE
+    exit 1
+}
+
+[ $# -lt 2 ] && usage
+
+INSTANCE=$1
+VERSION=$2
+shift 2
+
+PROFILE=dev
+POSTGRES_VERSION=13.0
+DOMAIN=
+CONTACT=
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --profile) PROFILE=$2; shift 2 ;;
+        --postgres-version) POSTGRES_VERSION=$2; shift 2 ;;
+        --domain) DOMAIN=$2; shift 2 ;;
+        --contact) CONTACT=$2; shift 2 ;;
+        *) echo "Unknown argument: $1" >&2; usage ;;
+    esac
+done
+
+case "$PROFILE" in
+    local|dev|server) ;;
+    *) echo "Unknown profile '$PROFILE' (expected local, dev, or server)" >&2; exit 1 ;;
+esac
+
+if [ "$PROFILE" = "server" ] && { [ -z "$DOMAIN" ] || [ -z "$CONTACT" ]; }; then
+    echo "profile 'server' requires --domain and --contact" >&2
+    exit 1
+fi
+
+if [ ! -d "$REPO_ROOT/templates/$VERSION" ]; then
+    echo "No template for Odoo version '$VERSION' (expected templates/$VERSION/)" >&2
+    exit 1
+fi
+
+if [ "$PROFILE" = "dev" ] && [ ! -f "$REPO_ROOT/templates/$VERSION/odoo_debug/Dockerfile" ]; then
+    echo "No debug image available for version '$VERSION' (expected templates/$VERSION/odoo_debug/Dockerfile)" >&2
+    exit 1
+fi
+
+INSTANCE_DIR="$HOME/dockers/$INSTANCE"
+
+if [ -d "$INSTANCE_DIR" ]; then
+    echo "Instance '$INSTANCE' already exists at $INSTANCE_DIR" >&2
+    exit 2
+fi
+
+mkdir -p "$INSTANCE_DIR/addons"
+cp -r "$REPO_ROOT/templates/_common/config" "$INSTANCE_DIR/config"
+
+if [ "$PROFILE" != "server" ]; then
+    cp -r "$REPO_ROOT/templates/_common/.vscode" "$INSTANCE_DIR/.vscode"
+fi
+
+if [ "$PROFILE" = "dev" ]; then
+    cp -r "$REPO_ROOT/templates/$VERSION/odoo_debug" "$INSTANCE_DIR/odoo_debug"
+fi
+
+cat > "$INSTANCE_DIR/.env" <<ENV
+INSTANCE=$INSTANCE
+ODOO_VERSION=$VERSION
+POSTGRES_VERSION=$POSTGRES_VERSION
+DOMAIN=$DOMAIN
+CONTACT=$CONTACT
+COMPOSE_PROFILE=$PROFILE
+ENV
+
+echo "Instance directory created at $INSTANCE_DIR (profile: $PROFILE)"
+
+"$SCRIPTPATH/instance-up" "$INSTANCE"

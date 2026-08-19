@@ -1,0 +1,26 @@
+# Server instance: sits behind nginx-proxy/acme-companion (see
+# server/proxy), named volumes instead of bind mounts, no published ports.
+services:
+  web:
+    restart: always
+    environment:
+      - VIRTUAL_HOST=${DOMAIN}
+      - VIRTUAL_PORT=8069
+      - LETSENCRYPT_HOST=${DOMAIN}
+      - LETSENCRYPT_EMAIL=${CONTACT}
+    volumes:
+      - extra-addons:/mnt/extra-addons
+      - backups:/mnt/backups
+    networks:
+      - nginx-proxy
+
+  db:
+    restart: always
+
+volumes:
+  extra-addons:
+  backups:
+
+networks:
+  nginx-proxy:
+    external: true

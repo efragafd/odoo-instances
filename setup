@@ -1,0 +1,36 @@
+#!/bin/bash
+# Local development environment setup: puts bin/ on PATH.
+#
+# For provisioning a VPS instead, see server/ (Phase 5 of
+# docs/MIGRATION-PLAN.md — not implemented yet).
+
+set -e
+
+SCRIPT=$(realpath "$0")
+SCRIPTPATH=$(dirname "$SCRIPT")
+BIN_DIR="$SCRIPTPATH/bin"
+
+if ! command -v docker >/dev/null 2>&1; then
+    echo "Docker was not found on PATH. Install Docker Desktop (or Docker" >&2
+    echo "Engine + the compose plugin) and re-run this script." >&2
+    exit 1
+fi
+
+if ! docker compose version >/dev/null 2>&1; then
+    echo "The 'docker compose' plugin was not found. Docker Desktop bundles" >&2
+    echo "it; on Linux install docker-compose-plugin. Re-run once available." >&2
+    exit 1
+fi
+
+PROFILE_FILE="$HOME/.profile"
+EXPORT_LINE="export PATH=\$PATH:$BIN_DIR"
+
+if ! grep -qF "$BIN_DIR" "$PROFILE_FILE" 2>/dev/null; then
+    echo "$EXPORT_LINE" >> "$PROFILE_FILE"
+    echo "Added $BIN_DIR to PATH via $PROFILE_FILE"
+    echo "Restart your shell, or run: source $PROFILE_FILE"
+else
+    echo "$BIN_DIR is already on PATH via $PROFILE_FILE"
+fi
+
+echo "Setup complete. Try: instance-new my-test 16.0"

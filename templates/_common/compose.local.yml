@@ -1,0 +1,6 @@
+# Plain local instance: published ports, no debugger.
+services:
+  web:
+    ports:
+      - "8069:8069"
+      - "8070:8070"

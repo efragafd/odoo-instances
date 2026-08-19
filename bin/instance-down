@@ -1,0 +1,11 @@
+#!/bin/bash
+INSTANCE=$1
+set -e
+
+SCRIPTPATH=$(cd "$(dirname "$0")" && pwd)
+# shellcheck disable=SC1091
+source "$SCRIPTPATH/_lib.sh"
+
+instance_compose_args "$INSTANCE"
+
+docker compose -p "$INSTANCE" "${COMPOSE_ARGS[@]}" down

@@ -1,4 +1,4 @@
-FROM odoo:16.0 as base
+FROM odoo:12.0 as base
 
 # >>>>>>> DEBUGGER MODE >>>>>>>>>>>>>
 FROM base AS debug
