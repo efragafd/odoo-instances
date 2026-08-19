@@ -1,7 +1,18 @@
 #!/bin/bash
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    cat <<USAGE
+USAGE: instance-dev INSTANCE [ODOO_ARGS...]
+
+  Run a second, foreground Odoo process inside INSTANCE's web container on
+  port 8070 (published by the "dev" and "local" profiles), separate from
+  the container's main process on 8069. Extra ODOO_ARGS are passed through
+  — e.g. -u mymodule to update a module while watching the output.
+USAGE
+    exit 0
+fi
+
 INSTANCE=$1;
 
 set -e;
 
-# > 14.0 
 docker exec -it $INSTANCE odoo --http-port 8070 --db_host db --db_port 5432 --db_user odoo --db_password odoo ${@:2}

@@ -1,4 +1,13 @@
 #!/bin/bash
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    cat <<USAGE
+USAGE: instance-exec INSTANCE CMD [ARGS...]
+
+  Run CMD interactively inside INSTANCE's web container (as the odoo user).
+USAGE
+    exit 0
+fi
+
 INSTANCE=$1;
 set -e;
 

@@ -1,4 +1,14 @@
 #!/bin/bash
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    cat <<USAGE
+USAGE: instance-stop INSTANCE
+
+  docker stop INSTANCE's web and db containers directly, without removing
+  them (unlike instance-down, this doesn't need INSTANCE's .env/profile).
+USAGE
+    exit 0
+fi
+
 INSTANCE=$1;
 set -e;
 

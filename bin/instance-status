@@ -1,4 +1,16 @@
 #!/bin/bash
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    cat <<USAGE
+USAGE: instance-status INSTANCE [ANYTHING]
+
+  Print docker ps status for INSTANCE's web container, as one line of
+  JSON: {"name": ..., "status": ...}. Pass any second argument (its value
+  is ignored — it's a presence check, not a database name) to check the
+  db container instead.
+USAGE
+    exit 0
+fi
+
 INSTANCE=$1;
 DB=$2;
 set -e;

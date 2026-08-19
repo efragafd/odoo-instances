@@ -1,4 +1,15 @@
 #!/bin/bash
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    cat <<USAGE
+USAGE: instance-dev-open INSTANCE
+
+  Open http://localhost:8069 (INSTANCE's web UI) in the default browser.
+  Assumes the instance's ports are published on localhost — true for the
+  "local" and "dev" profiles, not "server".
+USAGE
+    exit 0
+fi
+
 INSTANCE=$1;
 set -e;
 

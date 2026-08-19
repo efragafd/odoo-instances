@@ -1,4 +1,16 @@
 #!/bin/bash
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    cat <<USAGE
+USAGE: instance-up INSTANCE
+
+  Bring up an existing instance (docker compose up -d --build), using the
+  profile recorded in its .env. Called automatically by instance-new; use
+  this directly after instance-down/instance-stop, or after editing an
+  instance's config.
+USAGE
+    exit 0
+fi
+
 INSTANCE=$1
 set -e
 

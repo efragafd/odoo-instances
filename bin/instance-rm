@@ -1,4 +1,16 @@
 #!/bin/bash
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    cat <<USAGE
+USAGE: instance-rm INSTANCE
+
+  Permanently delete INSTANCE: stops its containers, removes every volume
+  it declared (web-data/db-data, plus extra-addons for server instances),
+  and deletes ~/dockers/INSTANCE. Not recoverable unless you have a backup
+  (see server/backup/ for server-profile instances).
+USAGE
+    exit 0
+fi
+
 INSTANCE=$1
 set -e
 

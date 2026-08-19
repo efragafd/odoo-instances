@@ -9,8 +9,11 @@ random_secret() {
 }
 
 usage() {
-    cat >&2 <<USAGE
+    cat <<USAGE
 USAGE: instance-new INSTANCE VERSION [options]
+
+  Create a new Odoo instance under ~/dockers/INSTANCE and bring it up.
+  VERSION must have a directory under templates/, e.g. 19.0.
 
   --profile local|dev|server   default: dev
                                   local   published ports, no debugger
@@ -23,10 +26,14 @@ USAGE: instance-new INSTANCE VERSION [options]
   --domain DOMAIN               required for --profile server
   --contact EMAIL                required for --profile server
 USAGE
-    exit 1
 }
 
-[ $# -lt 2 ] && usage
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    usage
+    exit 0
+fi
+
+[ $# -lt 2 ] && { usage >&2; exit 1; }
 
 INSTANCE=$1
 VERSION=$2
@@ -43,7 +50,7 @@ while [ $# -gt 0 ]; do
         --postgres-version) POSTGRES_VERSION=$2; shift 2 ;;
         --domain) DOMAIN=$2; shift 2 ;;
         --contact) CONTACT=$2; shift 2 ;;
-        *) echo "Unknown argument: $1" >&2; usage ;;
+        *) echo "Unknown argument: $1" >&2; usage >&2; exit 1 ;;
     esac
 done
 

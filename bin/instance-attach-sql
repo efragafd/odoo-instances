@@ -1,10 +1,17 @@
 #!/bin/bash
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    cat <<USAGE
+USAGE: instance-attach-sql INSTANCE DB
+
+  Open an interactive psql shell against database DB on INSTANCE's db
+  container, as the odoo role.
+USAGE
+    exit 0
+fi
+
 INSTANCE=$1;
 DB=$2;
-# user=$3 TOD0: if root, run as admin
 
 set -e;
-
-
 
 docker exec -it $INSTANCE\_db psql -U odoo -d $DB;

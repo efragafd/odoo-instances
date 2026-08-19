@@ -1,3 +1,13 @@
+#!/bin/bash
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    cat <<USAGE
+USAGE: instance-code INSTANCE
+
+  Open INSTANCE's directory (~/dockers/INSTANCE) in VS Code.
+USAGE
+    exit 0
+fi
+
 INSTANCE=$1;
 set -e;
 

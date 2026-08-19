@@ -1,12 +1,19 @@
 {
   // See https://go.microsoft.com/fwlink/?LinkId=733558
   // for the documentation about the tasks.json format
+  //
+  // Delegates to bin/instance-* (must be on PATH — see setup) instead of
+  // invoking docker/docker compose directly, since those scripts already
+  // know how to build the right `-f base -f profile-overlay --env-file
+  // --project-directory` invocation for this instance. ${workspaceFolderBasename}
+  // is the instance name — this file is opened as ~/dockers/<instance>.
   "version": "2.0.0",
   "tasks": [
     {
       "label": "docker up",
       "type": "shell",
-      "command": "docker-compose up -d",
+      "command": "instance-up",
+      "args": ["${workspaceFolderBasename}"],
       "presentation": {
         "reveal": "silent",
         "panel": "shared",
@@ -19,7 +26,8 @@
       "label": "docker restart web",
       "type": "shell",
       "dependsOn": ["docker up"],
-      "command": "docker-compose restart web",
+      "command": "docker",
+      "args": ["restart", "${workspaceFolderBasename}"],
       "presentation": {
         "reveal": "always",
         "focus": true,
@@ -31,30 +39,19 @@
     {
       "label": "docker stop",
       "type": "shell",
-      "command": "docker-compose stop",
+      "command": "instance-stop",
+      "args": ["${workspaceFolderBasename}"],
       "problemMatcher": []
     },
     {
       "label": "module update",
       "dependsOn": ["docker up"],
       "problemMatcher": [],
-      "command": "docker-compose",
+      "command": "instance-exec-odoo",
       "promptOnClose": true,
       "args": [
-        "exec",
-        "web",
-        "/usr/bin/odoo",
-        "--db_host",
-        "db",
-        "--db_port",
-        "5432",
-        "--db_user",
-        "odoo",
-        "--db_password",
-        "odoo",
-        "--stop-after-init"
-        // "-d",
-        // "",
+        "${workspaceFolderBasename}",
+        "demo"
         // "-u",
         // "",
       ],

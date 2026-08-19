@@ -1,4 +1,15 @@
 #!/bin/bash
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    cat <<USAGE
+USAGE: instance-exec-odoo INSTANCE DB [ODOO_ARGS...]
+
+  Run a one-shot Odoo command inside INSTANCE's web container against
+  database DB, with --no-http --stop-after-init. Extra ODOO_ARGS are
+  passed through — e.g. -i mymodule or -u mymodule to install/update.
+USAGE
+    exit 0
+fi
+
 INSTANCE=$1;
 DB=$2;
 set -e;

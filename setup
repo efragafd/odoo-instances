@@ -1,8 +1,17 @@
 #!/bin/bash
 # Local development environment setup: puts bin/ on PATH.
 #
-# For provisioning a VPS instead, see server/ (Phase 5 of
-# docs/MIGRATION-PLAN.md — not implemented yet).
+# For provisioning a VPS instead, see server/bootstrap/.
+
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    cat <<USAGE
+USAGE: setup
+
+  One-time local setup: checks for docker + the compose plugin, and adds
+  bin/ to PATH via ~/.profile. Safe to re-run.
+USAGE
+    exit 0
+fi
 
 set -e
 

@@ -1,4 +1,13 @@
 #!/bin/bash
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    cat <<USAGE
+USAGE: instance-attach INSTANCE
+
+  Attach an interactive root shell inside INSTANCE's web container.
+USAGE
+    exit 0
+fi
+
 INSTANCE=$1;
 set -e;
 

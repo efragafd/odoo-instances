@@ -1,3 +1,13 @@
+#!/bin/bash
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    cat <<USAGE
+USAGE: instance-code-m INSTANCE MODULE
+
+  Open one module's directory (~/dockers/INSTANCE/addons/MODULE) in VS Code.
+USAGE
+    exit 0
+fi
+
 INSTANCE=$1;
 MODULE=$2;
 set -e;
