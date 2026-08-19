@@ -1,6 +1,6 @@
 # Migration Plan: unify `odoo-server-instances` into `odoo-instances`
 
-Status: **in progress** — Phase 7 local half verified with real execution; server half blocked on GCP access (see Phase 7)
+Status: **closed** — Phases 0-6 complete. Phase 7's local half verified with real execution (Docker Desktop came online mid-migration); the server/GCE half was deferred by explicit user decision rather than run against real cloud infrastructure — see Phase 7 for what that means for confidence in the server-side code.
 Drafted: 2026-08-19
 Scope: merge the VPS deployment tooling into this repo, modernize the runtime, add Odoo 17/18/19, and document everything.
 
@@ -203,12 +203,12 @@ Also retired `server/new`, `server/odoo-postgres.yml`, `server/user-data`, and `
   - Confirmed HTTP (`curl` to `:8069`) and debugpy (raw TCP connect to `:5678`) both genuinely reachable — the strongest non-interactive proxy for "the debugger would actually attach" available in this environment.
   - `instance-down`/`instance-rm` exercised against real containers and volumes for the first time (previously only stub-tested) — full teardown confirmed correct.
   - Found and fixed a second real bug along the way: Git Bash on Windows mangles any `docker exec`/`--filter` argument starting with `/` into a Windows path, breaking `instance-exec-odoo`, `mkmod`, and `instance-status` outright. Fixed with `MSYS_NO_PATHCONV=1` on the affected invocations (a no-op on Linux/macOS).
-- [ ] Server: deploy 19.0 to a throwaway GCE VM on a test subdomain — **blocked**: needs `gcloud` (not installed in this environment) plus real GCP credentials, a project, and a domain, none of which this session has. Spinning up billed cloud resources also isn't something to do without the user's explicit go-ahead. See the note below.
-- [ ] Confirm TLS issuance, confirm `proxy_mode` (client IPs in logs, correct generated URLs) — depends on the above
-- [ ] Run a full backup + restore cycle (server-profile only — depends on the above)
-- [ ] Destroy the test VM
+- [ ] ~~Server: deploy 19.0 to a throwaway GCE VM on a test subdomain~~ — **deferred, by decision, not by default.** Needed `gcloud` (not installed in this environment) plus real GCP credentials, a project, and a domain, none of which this session had; asked the user whether to run it themselves, hand over access, or skip it — they chose to skip and close out the migration rather than block on infra access.
+- [ ] ~~Confirm TLS issuance, confirm `proxy_mode` (client IPs in logs, correct generated URLs)~~ — deferred with the above
+- [ ] ~~Run a full backup + restore cycle~~ (server-profile only) — deferred with the above
+- [ ] ~~Destroy the test VM~~ — deferred with the above
 
-**Server-side verification needs the user to either:** run it themselves following `docs/server-deployment.md` and report back what broke, or hand over `gcloud` access (authenticated CLI, a project with billing, a test domain) so it can be run end-to-end here.
+**If this ever gets picked up:** follow `docs/server-deployment.md` end to end on a throwaway project/subdomain, and treat every step as unverified against real GCP until it's actually been run — the server-side code (Phases 4/5) was verified as thoroughly as a sandbox without cloud access allows (`docker compose config` resolution, dry runs against a stubbed `gcloud`/metadata server, real syntax/logic checks — see those phases' commits), but none of it has touched a real VM, real DNS, or a real Let's Encrypt request.
 
 ---
 

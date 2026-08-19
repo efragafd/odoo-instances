@@ -4,6 +4,17 @@ End-to-end: a bare GCP project to a TLS-served Odoo instance. The
 `gcloud`-level detail (firewall rules, sizing, IAP) lives in
 `server/bootstrap/README.md`; this is the narrative walkthrough.
 
+> **This flow hasn't been run against real GCP infrastructure yet**
+> (`docs/MIGRATION-PLAN.md` Phase 7 — deferred by decision, not by
+> default). Everything here was verified as thoroughly as possible
+> without cloud access: `docker compose config` resolution for every
+> version/profile combination, `gce-startup.sh` dry-run tested end to
+> end against a stubbed `gcloud`/metadata server, and the IAP source
+> range/sizing guidance checked against Google's own docs. None of that
+> is the same as an actual `gcloud compute instances create` and a real
+> Let's Encrypt request. If you're the first to run this for real,
+> expect to hit something, and please report it back.
+
 ## 0. Before you start
 
 - A GCP project with billing enabled and the Compute Engine API turned on.
