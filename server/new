@@ -1,0 +1,28 @@
+#!/bin/bash
+
+INSTANCE=$1
+DOMAIN=$2
+ODOO_VERSION=$3
+POSTGRES_VERSION=$4
+
+DOCKERS_DIR='/root/dockers'
+
+REPO_URL='https://github.com/efragafd/odoo-server'
+REPO_BRANCH='master'
+
+REMOTE_RESOURCES=$REPO_URL/tree/$REPO_BRANCH
+INSTANCE_DIR=$DOCKERS_DIR/$INSTANCE
+
+mkdir -p $INSTANCE_DIR
+curl $REMOTE_RESOURCES/odoo-postgres.yml -o $INSTANCE_DIR/docker-compose.yml
+sed -i "s/\${INSTANCE}/$INSTANCE/g" $INSTANCE_DIR/docker-compose.yml
+sed -i "s/\${ODOO_VERSION}/$ODOO_VERSION/g" $INSTANCE_DIR/docker-compose.yml
+sed -i "s/\${POSTGRES_VERSION}/$POSTGRES_VERSION/g" $INSTANCE_DIR/docker-compose.yml
+sed -i "s/\${DOMAIN}/$DOMAIN/g" $INSTANCE_DIR/docker-compose.yml
+sed -i "s/\${CONTACT}/efragafloresd@gmail.com/g" $INSTANCE_DIR/docker-compose.yml
+docker-compose -f $INSTANCE_DIR/docker-compose.yml up -d
+ln -s /var/lib/docker/volumes/"$INSTANCE"_backups/_data/ $INSTANCE_DIR/backups
+ln -s /var/lib/docker/volumes/"$INSTANCE"_config/_data/ $INSTANCE_DIR/config
+ln -s /var/lib/docker/volumes/"$INSTANCE"_db-data/_data/ $INSTANCE_DIR/db-data
+ln -s /var/lib/docker/volumes/"$INSTANCE"_extra-addons/_data/ $INSTANCE_DIR/extra-addons
+ln -s /var/lib/docker/volumes/"$INSTANCE"_web-data/_data/ $INSTANCE_DIR/web-data
