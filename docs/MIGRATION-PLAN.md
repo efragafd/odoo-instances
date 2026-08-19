@@ -1,6 +1,6 @@
 # Migration Plan: unify `odoo-server-instances` into `odoo-instances`
 
-Status: **in progress** — Phase 6 complete, awaiting go-ahead on Phase 7 (final phase)
+Status: **in progress** — Phase 7 local half verified with real execution; server half blocked on GCP access (see Phase 7)
 Drafted: 2026-08-19
 Scope: merge the VPS deployment tooling into this repo, modernize the runtime, add Odoo 17/18/19, and document everything.
 
@@ -197,11 +197,18 @@ Also retired `server/new`, `server/odoo-postgres.yml`, `server/user-data`, and `
 
 ### Phase 7 — verification
 
-- [ ] Local: create a 19.0 dev instance, scaffold a module, hit a breakpoint
-- [ ] Server: deploy 19.0 to a throwaway GCE VM on a test subdomain
-- [ ] Confirm TLS issuance, confirm `proxy_mode` (client IPs in logs, correct generated URLs)
-- [ ] Run a full backup + restore cycle
+- [x] Local: create a 19.0 dev instance, scaffold a module, hit a breakpoint. Docker Desktop became available mid-session, so this ran against a real daemon, not another dry run:
+  - `instance-new phase7-test 19.0 --profile dev` — real image pulls (`odoo:19.0`, `postgres:16`), real debug-image build. Confirmed `pip3 install --break-system-packages debugpy` (the Phase 3 fix) actually succeeds on the real image.
+  - `mkmod` scaffolded a real module — found and fixed a real bug in the process: a hard `sudo chown`/`sudo cp` under `set -e` aborted the script after a successful scaffold on Windows, where `sudo.exe` exists but is disabled by default.
+  - Confirmed HTTP (`curl` to `:8069`) and debugpy (raw TCP connect to `:5678`) both genuinely reachable — the strongest non-interactive proxy for "the debugger would actually attach" available in this environment.
+  - `instance-down`/`instance-rm` exercised against real containers and volumes for the first time (previously only stub-tested) — full teardown confirmed correct.
+  - Found and fixed a second real bug along the way: Git Bash on Windows mangles any `docker exec`/`--filter` argument starting with `/` into a Windows path, breaking `instance-exec-odoo`, `mkmod`, and `instance-status` outright. Fixed with `MSYS_NO_PATHCONV=1` on the affected invocations (a no-op on Linux/macOS).
+- [ ] Server: deploy 19.0 to a throwaway GCE VM on a test subdomain — **blocked**: needs `gcloud` (not installed in this environment) plus real GCP credentials, a project, and a domain, none of which this session has. Spinning up billed cloud resources also isn't something to do without the user's explicit go-ahead. See the note below.
+- [ ] Confirm TLS issuance, confirm `proxy_mode` (client IPs in logs, correct generated URLs) — depends on the above
+- [ ] Run a full backup + restore cycle (server-profile only — depends on the above)
 - [ ] Destroy the test VM
+
+**Server-side verification needs the user to either:** run it themselves following `docs/server-deployment.md` and report back what broke, or hand over `gcloud` access (authenticated CLI, a project with billing, a test domain) so it can be run end-to-end here.
 
 ---
 
