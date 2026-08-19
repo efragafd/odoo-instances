@@ -36,10 +36,10 @@ if [ -d $INSTANCE_DIR ]; then
     exit 2
 fi
 
-echo "Instance directory created at $INSTANCE_DIR"
-
 # copy recursively from templates folders the necessary items
-cp -r $SCRIPTPATH/templates/$VERSION $INSTANCE_DIR
+sudo cp -r $SCRIPTPATH/templates/$VERSION $INSTANCE_DIR
+
+echo "Instance directory created at $INSTANCE_DIR"
 
 # # go to instance directory ~/dockers/$INSTANCE
 cd $INSTANCE_DIR
@@ -51,10 +51,9 @@ cd $INSTANCE_DIR
 # # stream editor with subtitute (s/) and global (/g) flag 
 # sed -i "s/{instance}/$INSTANCE/g" {} \; # set instance name on all {instance} coincidences
 
-find . -type f -exec sed -i "s/{instance}/$INSTANCE/g" {} \;
+sudo find . -type f -exec sed -i "s/{instance}/$INSTANCE/g" {} \;
 
 echo $SCRIPTPATH
 
 # run instance-up with following instance name
 $SCRIPTPATH/instance-up $INSTANCE
-

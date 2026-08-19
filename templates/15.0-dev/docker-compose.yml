@@ -1,0 +1,45 @@
+version: '3.3'
+services:
+  web:
+    container_name: {instance}
+    image: odoo_debug:1.0.0
+    build:
+      context: ./odoo_debug
+      target: debug
+    hostname: {instance}
+    depends_on:
+      - db
+    volumes:
+      - web-data:/var/lib/odoo
+      - ./config:/etc/odoo
+      - ./addons:/mnt/extra-addons
+    ports:
+      - "8069:8069"
+      - "8070:8069"
+      - "5678:5678"
+    networks:
+      - nginx-proxy
+      - internal
+  db:
+    image: postgres:13.0
+    container_name: {instance}_db
+    hostname: {instance}_db
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - internal
+
+volumes:
+  web-data:
+  db-data:
+
+networks:
+  nginx-proxy:
+    external: true
+  internal:
+    external: false
