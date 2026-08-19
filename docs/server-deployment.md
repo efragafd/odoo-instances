@@ -88,12 +88,20 @@ aren't instant.
 gcloud compute ssh odoo-server --zone=ZONE --tunnel-through-iap
 ```
 
-On the VM:
+On the VM, **become root first**. The startup script runs as root, so
+instances live in `/root/dockers` and only root is in the `docker` group on
+a fresh GCE VM — running `instance-*` as your own SSH user will report
+`has no .env file`, which is this, not a broken instance:
+
+```bash
+sudo -i
+```
 
 ```bash
 docker ps                                   # nginx-proxy, acme-companion, myclient, myclient_db
 docker logs myclient | tail                 # Odoo starting up
 cat ~/dockers/myclient/config/odoo.conf     # confirm proxy_mode/list_db/admin_passwd landed
+instance-status myclient                    # bin/ is on PATH via /etc/profile.d/
 ```
 
 Then from your own machine: `https://odoo.example.com` should load Odoo,
@@ -110,10 +118,10 @@ second place to recover it from.
 
 The metadata-driven instance in step 3 is optional — `gce-startup.sh`
 skips it entirely if `odoo-instance` metadata isn't set. Either way, add
-more instances by hand over SSH:
+more instances by hand over SSH (as root — see the note in step 4):
 
 ```bash
-instance-new secondclient 19.0 --profile server --domain second.example.com --contact you@example.com
+sudo -i && instance-new secondclient 19.0 --profile server --domain second.example.com --contact you@example.com
 ```
 
 Each is a fully separate container pair with its own domain — see "Where

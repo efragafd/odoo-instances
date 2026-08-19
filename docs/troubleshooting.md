@@ -125,6 +125,30 @@ right after the module had already been scaffolded successfully. Current
 warning, not a fatal error — confirmed by running it against a real
 instance on this exact platform.
 
+## Server: `instance-*` says "has no .env file", but the instance is clearly running
+
+You're running it as your own SSH user. `gce-startup.sh` runs as **root**,
+and `instance-new` puts instances in `$HOME/dockers` — so on a GCE VM they
+live in `/root/dockers`, not `/home/you/dockers`. Same reason plain
+`docker ps` fails: only root is in the `docker` group on a fresh VM.
+
+```bash
+sudo -i
+```
+
+Then `instance-status`, `instance-up`, etc. work normally (`bin/` is on
+PATH via `/etc/profile.d/odoo-instances.sh`, written by the bootstrap).
+
+## Server: the VM booted but nothing is running at all
+
+Check the serial console (`gcloud compute instances get-serial-port-output
+VM --zone=ZONE`) for `FATAL: could not clone`. The bootstrap clones this
+repo over HTTPS with no credentials, so it only works if the repo is
+**public**. If it's private, the clone fails and everything downstream —
+proxy stack, instance creation, backup cron — never runs. Either make the
+repo public, or give the VM a read-only deploy key and switch `REPO_URL`
+in `gce-startup.sh` to an SSH URL.
+
 ## I have instances from before this repo's Phase 2 restructure
 
 Older instances (created before `instance-new` started writing a real

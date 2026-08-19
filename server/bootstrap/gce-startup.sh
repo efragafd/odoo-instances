@@ -62,9 +62,24 @@ fi
 
 if [ -d "$REPO_DIR/.git" ]; then
     git -C "$REPO_DIR" pull --ff-only
-else
-    git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+elif ! git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then
+    # The VM has no GitHub credentials, so this only works if $REPO_URL is
+    # public. Fail loudly here rather than letting `set -e` abort with no
+    # explanation — everything below depends on the clone having worked.
+    echo "FATAL: could not clone $REPO_URL" >&2
+    echo "The VM has no GitHub credentials. Either make the repository" >&2
+    echo "public, or give this VM a read-only deploy key and use an SSH" >&2
+    echo "clone URL. Nothing else in this script can run without it." >&2
+    exit 1
 fi
+
+# Put bin/ on PATH for every login shell. Server instances live in root's
+# home (this script runs as root, and instance-new uses $HOME), so instance
+# management on this box means `sudo -i` first — see the closing message.
+cat > /etc/profile.d/odoo-instances.sh <<PROFILE
+export PATH="\$PATH:$REPO_DIR/bin"
+PROFILE
+chmod 644 /etc/profile.d/odoo-instances.sh
 
 # --- shared reverse proxy --------------------------------------------------
 
@@ -101,3 +116,28 @@ if ! crontab -l 2>/dev/null | grep -qF "$BACKUP_ALL"; then
       echo "30 3 * * * $PRUNE >> /var/log/odoo-backup.log 2>&1"; \
     } | crontab -
 fi
+
+# --- how to actually operate this box ---------------------------------------
+# This script runs as root, so instances live in /root/dockers and only root
+# is in the docker group. Say so explicitly in the serial console output
+# rather than letting the operator discover it by hitting errors.
+
+cat <<'DONE'
+
+=============================================================
+ odoo-instances bootstrap finished.
+
+ Manage this box as ROOT — instances live in /root/dockers,
+ and docker access is root-only on a fresh GCE VM:
+
+     sudo -i
+     instance-status <instance>
+     instance-up / instance-down / instance-new ...
+
+ (bin/ is on PATH via /etc/profile.d/odoo-instances.sh.)
+
+ Running instance-* as your own SSH user will report
+ "has no .env file" — that is this, not a broken instance.
+=============================================================
+
+DONE
