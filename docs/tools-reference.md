@@ -173,8 +173,9 @@ USAGE: instance-up INSTANCE
 USAGE: mkmod INSTANCE MODULE_NAME
 
   Scaffold a new Odoo module named MODULE_NAME into INSTANCE's addons/
-  (via odoo scaffold), fix its ownership (scaffold runs as root), and
-  copy the instance's .vscode/ into the new module directory so a
-  per-module VS Code workspace can be opened with instance-code-m.
+  (via odoo scaffold), fix its ownership (scaffold runs as root inside the
+  container), and copy the instance's .vscode/ into the new module
+  directory so a per-module VS Code workspace can be opened with
+  instance-code-m.
 ```
 

@@ -21,4 +21,6 @@ else
     NAME=$INSTANCE"_db";
 fi
 
-docker ps -a --filter name=^/$NAME$ --format '{"name": "{{.Names}}", "status": "{{.Status}}"}' | sed '$!s/$/,/';
+# MSYS_NO_PATHCONV: see instance-exec-odoo — the ^/NAME$ filter value
+# below starts with "/" and gets mangled by Git Bash on Windows otherwise.
+MSYS_NO_PATHCONV=1 docker ps -a --filter name=^/$NAME$ --format '{"name": "{{.Names}}", "status": "{{.Status}}"}' | sed '$!s/$/,/';

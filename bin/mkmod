@@ -4,9 +4,10 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
 USAGE: mkmod INSTANCE MODULE_NAME
 
   Scaffold a new Odoo module named MODULE_NAME into INSTANCE's addons/
-  (via odoo scaffold), fix its ownership (scaffold runs as root), and
-  copy the instance's .vscode/ into the new module directory so a
-  per-module VS Code workspace can be opened with instance-code-m.
+  (via odoo scaffold), fix its ownership (scaffold runs as root inside the
+  container), and copy the instance's .vscode/ into the new module
+  directory so a per-module VS Code workspace can be opened with
+  instance-code-m.
 USAGE
     exit 0
 fi
@@ -16,9 +17,25 @@ MODULE_NAME=$2;
 
 set -e;
 
-docker exec -u root -it $INSTANCE /usr/bin/odoo scaffold $MODULE_NAME /mnt/extra-addons
+# MSYS_NO_PATHCONV: see instance-exec-odoo — both args below start with
+# "/" and get mangled by Git Bash on Windows otherwise.
+MSYS_NO_PATHCONV=1 docker exec -u root -it $INSTANCE /usr/bin/odoo scaffold $MODULE_NAME /mnt/extra-addons
 
-sudo chown $(whoami):$(whoami) -R $HOME/dockers/$INSTANCE/addons/$MODULE_NAME/
+MODULE_DIR="$HOME/dockers/$INSTANCE/addons/$MODULE_NAME"
 
-# copy recursively from templates folders the necessary items
-sudo cp -r $HOME/dockers/$INSTANCE/.vscode $HOME/dockers/$INSTANCE/addons/$MODULE_NAME/
+# The scaffold step above creates files as container-root; on Linux/macOS
+# that leaves them root-owned on the host bind mount and chown -R is
+# needed. On Windows, Docker Desktop's file-sharing layer already presents
+# them as the host user, so plain chown (no sudo) just works — and on any
+# platform where sudo exists but isn't enabled (e.g. Windows' own sudo.exe,
+# off by default), a hard sudo dependency would abort an otherwise-
+# successful scaffold. Try without sudo first, fall back to it, and don't
+# let either being unavailable erase the fact that scaffold already
+# succeeded.
+if ! chown -R "$(whoami)" "$MODULE_DIR" 2>/dev/null && ! sudo chown -R "$(whoami)" "$MODULE_DIR" 2>/dev/null; then
+    echo "warning: could not chown $MODULE_DIR to $(whoami) — files may still be root-owned" >&2
+fi
+
+if ! cp -r "$HOME/dockers/$INSTANCE/.vscode" "$MODULE_DIR/" 2>/dev/null && ! sudo cp -r "$HOME/dockers/$INSTANCE/.vscode" "$MODULE_DIR/" 2>/dev/null; then
+    echo "warning: could not copy .vscode into $MODULE_DIR" >&2
+fi

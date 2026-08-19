@@ -86,6 +86,45 @@ on Windows), so Git ignores real `chmod` calls entirely. Fix with:
 git update-index --chmod=+x path/to/script
 ```
 
+## `docker exec`/`instance-exec-odoo`/`mkmod`/`instance-status` fail or return nothing, only on Windows
+
+Git Bash's MSYS layer rewrites any argument starting with `/` into a
+Windows path before handing it to a native `.exe` — so `/usr/bin/odoo`
+(meant as a path *inside the container*) becomes something like
+`C:/Program Files/Git/usr/bin/odoo`, and `docker exec` fails with `exec:
+"C:/Program Files/Git/usr/bin/odoo": stat ...: no such file or directory`.
+The same thing silently empties out `instance-status`'s `--filter
+name=^/...$` (no error, just no output). These scripts already prefix the
+affected `docker` calls with `MSYS_NO_PATHCONV=1` to disable that
+rewriting — if you hit this anyway (e.g. running a `docker exec ... /abs/path`
+command directly, or through `instance-exec` with your own leading-slash
+command), prefix it the same way. Confirmed by actually hitting both
+failure modes against a real instance during Phase 7 verification, not
+theoretical.
+
+## `mkmod`/anything using `docker exec -it` fails with "the input device is not a TTY"
+
+`-it` needs a real interactive terminal. This is expected in a script
+piped through something else (CI, an editor's non-interactive terminal,
+this repo's own AI-assisted development sessions) — run it from an actual
+terminal window instead. On Windows, if it still complains inside a real
+terminal, try prefixing with `winpty` (a Git Bash / MSYS quirk with
+allocating TTYs for non-MSYS binaries like `docker.exe`).
+
+## `mkmod` used to abort after a successful scaffold, only on Windows
+
+Fixed, but worth knowing why if you're on an older checkout: `mkmod` used
+a hard `sudo chown`/`sudo cp` with `set -e`. On Linux/macOS this is
+usually needed (scaffold runs as container-root, which leaves root-owned
+files on the host bind mount). On Windows, Docker Desktop's file-sharing
+layer already presents them as your own user — no `sudo` needed — but
+Windows 11's built-in `sudo.exe` exists and is disabled by default, so
+calling it exits non-zero anyway, and `set -e` aborted the whole script
+right after the module had already been scaffolded successfully. Current
+`mkmod` tries without `sudo` first and treats either step failing as a
+warning, not a fatal error — confirmed by running it against a real
+instance on this exact platform.
+
 ## I have instances from before this repo's Phase 2 restructure
 
 Older instances (created before `instance-new` started writing a real

@@ -14,4 +14,9 @@ INSTANCE=$1;
 DB=$2;
 set -e;
 
-docker exec -it $INSTANCE /usr/bin/odoo --no-http --db_host db --db_port 5432 --db_user odoo --db_password odoo --stop-after-init -d $DB ${@:3}
+# MSYS_NO_PATHCONV: on Git Bash for Windows, an argv token starting with
+# "/" (like /usr/bin/odoo, a path inside the container) gets silently
+# rewritten to a Windows path before docker ever sees it, breaking this
+# entirely. Harmless no-op on Linux/macOS. Verified against a real
+# instance during Phase 7 of docs/MIGRATION-PLAN.md.
+MSYS_NO_PATHCONV=1 docker exec -it $INSTANCE /usr/bin/odoo --no-http --db_host db --db_port 5432 --db_user odoo --db_password odoo --stop-after-init -d $DB ${@:3}

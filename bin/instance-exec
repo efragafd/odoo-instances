@@ -11,4 +11,6 @@ fi
 INSTANCE=$1;
 set -e;
 
-docker exec -it $INSTANCE ${@:2}
+# MSYS_NO_PATHCONV: see instance-exec-odoo — a leading-slash CMD (e.g.
+# /usr/bin/odoo) would otherwise get mangled by Git Bash on Windows.
+MSYS_NO_PATHCONV=1 docker exec -it $INSTANCE ${@:2}
