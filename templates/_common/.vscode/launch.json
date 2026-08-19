@@ -6,7 +6,7 @@
   "configurations": [
     {
       "name": "Odoo: Update",
-      "type": "python",
+      "type": "debugpy",
       "request": "attach",
       "logToFile": true,
       "connect": {

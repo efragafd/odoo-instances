@@ -1,6 +1,6 @@
 # Migration Plan: unify `odoo-server-instances` into `odoo-instances`
 
-Status: **in progress** — Phase 2 complete, awaiting go-ahead on Phase 3
+Status: **in progress** — Phase 3 complete, awaiting go-ahead on Phase 4
 Drafted: 2026-08-19
 Scope: merge the VPS deployment tooling into this repo, modernize the runtime, add Odoo 17/18/19, and document everything.
 
@@ -61,6 +61,7 @@ That is a compose *overlay*, not a fork. The whole plan follows from this.
 | 10 | A `backups` volume is declared and mounted; nothing ever writes to it | `odoo-postgres.yml` |
 | 11 | `instance-dev-open` uses `wslview` — WSL only | `instance-dev-open` |
 | 12 | Six near-identical template directories; one change means editing six files | `templates/` |
+| 13 | `postgres:13.0` is not a real image tag — PostgreSQL dropped the `.0` suffix after v10. Every `db` container in this repo would have failed to pull. Found during Phase 3. | every template's `POSTGRES_VERSION` default + `server/user-data` |
 
 ---
 
@@ -150,12 +151,12 @@ Compose already interpolates `${INSTANCE}`, `${ODOO_VERSION}`, `${POSTGRES_VERSI
 
 Verified: `odoo:19.0`, `odoo:18.0`, `odoo:17.0` all exist on Docker Hub (19.0 last pushed 2026-08-18).
 
-- [ ] `templates/19.0/`, `18.0/`, `17.0/` from the Phase-2 shape
-- [ ] **Pin `postgres:16`.** Odoo 19 raised the minimum from PG 12 to **PG 13**; 15+ is recommended and is required for pgvector. The current `postgres:13.0` pin sits exactly at the floor.
-- [ ] **debugpy gotcha:** `odoo:19.0` is built on `ubuntu:noble` / Python 3.12, which enforces PEP 668. The existing `RUN pip3 install debugpy` **fails** with `error: externally-managed-environment`.
-      Fix: `RUN pip3 install --break-system-packages debugpy`
-- [ ] Modernize `odoo.conf` keys for 16+: `xmlrpc_port` → `http_port`, `longpolling_port` → `gevent_port`
-- [ ] `.vscode/launch.json`: `"type": "python"` is deprecated → `"debugpy"`
+- [x] `templates/{17.0,18.0,19.0}/odoo_debug/Dockerfile` (the base+overlay design from Phase 2 means that's the only version-specific file needed)
+- [x] **Pin `postgres:16`** for 17.0/18.0/19.0 via `templates/<version>/postgres-version.default`. Odoo 19 raised the minimum from PG 12 to **PG 13**; 15+ is recommended and is required for pgvector.
+      While implementing this, found that the pre-existing `postgres:13.0` pin wasn't just minimal — **it doesn't exist as a tag at all** (Postgres dropped the `.0` suffix after v10; valid tags are `13`, `13.23`, `16`, `16.13`, ...). Every instance in this repo, local or server, would have failed to pull its db image. Fixed the default to `13` for 12.0-16.0 too, and fixed the same literal in `server/user-data`.
+- [x] **debugpy gotcha**, checked per-version rather than assumed: `odoo:18.0` and `odoo:19.0` are both built on `ubuntu:noble` / Python 3.12 (PEP 668 enforced) — their Dockerfiles use `RUN pip3 install --break-system-packages debugpy`. `odoo:17.0` is still `ubuntu:jammy`, so it keeps the plain `pip3 install debugpy` like 12.0-16.0.
+- [x] Modernize `odoo.conf` keys, verified against Odoo's own docs rather than assumed: `xmlrpc_port`/`xmlrpc_interface` → `http_port`/`http_interface` (renamed in Odoo **11**, so this was already stale advice for the whole 12.0-19.0 range, not just 16+) and `longpolling_port` → `gevent_port` (renamed in **16.0** specifically — left a one-line compat note in the shared file since that split is real)
+- [x] `.vscode/launch.json`: `"type": "python"` → `"debugpy"` (confirmed deprecated by Microsoft; the old type still works today but warns)
 
 ### Phase 4 — production-worthy server profile
 
