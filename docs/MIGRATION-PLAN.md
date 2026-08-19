@@ -1,6 +1,6 @@
 # Migration Plan: unify `odoo-server-instances` into `odoo-instances`
 
-Status: **in progress** — Phase 1 complete, awaiting go-ahead on Phase 2
+Status: **in progress** — Phase 2 complete, awaiting go-ahead on Phase 3
 Drafted: 2026-08-19
 Scope: merge the VPS deployment tooling into this repo, modernize the runtime, add Odoo 17/18/19, and document everything.
 
@@ -80,21 +80,35 @@ That is a compose *overlay*, not a fork. The whole plan follows from this.
 odoo-instances/
 ├── README.md                     # entry point, quickstart for both modes
 ├── docs/                         # Phase 6 deliverables
-├── bin/                          # all instance-* scripts, moved off root
+├── setup                         # local dev setup: checks docker, puts bin/ on PATH
+├── bin/                          # all instance-* scripts + mkmod, moved off root
 ├── templates/
-│   ├── _common/                  # shared .vscode, base odoo.conf
+│   ├── _common/                  # everything version-independent (was
+│   │   │                         # identical across every version already)
+│   │   ├── compose.yml           # base: web + db, nothing host-specific
+│   │   ├── compose.local.yml     # overlay: published ports, no debugger
+│   │   ├── compose.dev.yml       # overlay: debugpy image, :5678, published ports
+│   │   ├── compose.server.yml    # overlay: VIRTUAL_HOST, restart:always, named
+│   │   │                         # addons volume instead of a bind mount, no
+│   │   │                         # published ports
+│   │   ├── config/odoo.conf
+│   │   ├── .vscode/
+│   │   └── .env.example
 │   └── {12.0,14.0,15.0,16.0,17.0,18.0,19.0}/
-│       ├── compose.yml           # base: web + db, nothing host-specific
-│       ├── compose.dev.yml       # overlay: debugpy, :5678, published ports
-│       ├── compose.server.yml    # overlay: VIRTUAL_HOST, restart:always, no published ports
-│       ├── config/odoo.conf
-│       ├── odoo_debug/Dockerfile
-│       └── .env.example
+│       └── odoo_debug/Dockerfile # the only thing that's actually version-specific
 └── server/
     ├── proxy/compose.yml         # nginxproxy/nginx-proxy + acme-companion
     ├── bootstrap/gce-startup.sh  # was user-data, GCE-flavoured
     └── backup/                   # pg_dump + filestore cron
 ```
+
+`instance-new` copies `templates/_common/config` and (for local/dev profiles)
+`templates/_common/.vscode` into the instance directory, plus
+`templates/<version>/odoo_debug` for the dev profile, and writes the real
+`.env`. `instance-up`/`instance-down`/`instance-rm` read that `.env`'s
+`COMPOSE_PROFILE` and invoke `docker compose -f templates/_common/compose.yml
+-f templates/_common/compose.$PROFILE.yml --project-directory
+<instance-dir>`.
 
 Two structural changes carry most of the value:
 
@@ -127,11 +141,10 @@ Compose already interpolates `${INSTANCE}`, `${ODOO_VERSION}`, `${POSTGRES_VERSI
 
 ### Phase 2 — restructure
 
-- [ ] `git mv` scripts into `bin/`; the new setup script puts `bin/` on PATH
-- [ ] Convert `16.0` to base+overlay as the pilot; verify locally
-- [ ] Backport the shape to 15.0 / 14.0 / 12.0
-- [ ] Introduce `.env` templating
-- [ ] `instance-new INSTANCE VERSION [--profile local|dev|server]`
+- [x] `git mv` scripts into `bin/`; the new setup script puts `bin/` on PATH
+- [x] Convert all versions to base+overlay (not just 16.0 — the `.vscode`/`odoo.conf`/compose content was identical everywhere, so there was no reason to pilot one and backport); verified with `docker compose config`
+- [x] Introduce `.env` templating
+- [x] `instance-new INSTANCE VERSION [--profile local|dev|server]`
 
 ### Phase 3 — Odoo 17 / 18 / 19
 
