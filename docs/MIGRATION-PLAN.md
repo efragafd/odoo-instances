@@ -1,6 +1,6 @@
 # Migration Plan: unify `odoo-server-instances` into `odoo-instances`
 
-Status: **in progress** — Phase 0 complete, awaiting go-ahead on Phase 1
+Status: **in progress** — Phase 1 complete, awaiting go-ahead on Phase 2
 Drafted: 2026-08-19
 Scope: merge the VPS deployment tooling into this repo, modernize the runtime, add Odoo 17/18/19, and document everything.
 
@@ -118,12 +118,12 @@ Compose already interpolates `${INSTANCE}`, `${ODOO_VERSION}`, `${POSTGRES_VERSI
 
 ### Phase 1 — modernize the runtime
 
-- [ ] `docker-compose` → `docker compose` across all scripts
-- [ ] Drop the obsolete `version:` key from every compose file
-- [ ] `networks.nginx-proxy` → `{name: nginx-proxy, external: true}` (Compose v2 syntax)
-- [ ] Fix the 8070 port mapping (defect #4)
-- [ ] `nginxproxy/nginx-proxy` + `nginxproxy/acme-companion`, pinned (defect #7)
-- [ ] Guard `instance-dev-open` for WSL / Linux / macOS (defect #11)
+- [x] `docker-compose` → `docker compose` across all scripts
+- [x] Drop the obsolete `version:` key from every compose file
+- [x] `networks.nginx-proxy` → `{external: true}` (Compose v2 syntax)
+- [x] Fix the 8070 port mapping (defect #4)
+- [x] `nginxproxy/nginx-proxy:1.11.6` + `nginxproxy/acme-companion:2.8.2`, pinned (defect #7)
+- [x] Guard `instance-dev-open` for WSL / Linux / macOS (defect #11)
 
 ### Phase 2 — restructure
 
