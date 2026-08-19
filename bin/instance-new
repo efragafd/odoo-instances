@@ -13,7 +13,9 @@ USAGE: instance-new INSTANCE VERSION [options]
                                   dev     local + debugpy attach on :5678
                                   server  restart=always, named addons
                                           volume, nginx-proxy vhost
-  --postgres-version VERSION   default: 13.0
+  --postgres-version VERSION   default: the version in
+                                templates/VERSION/postgres-version.default
+                                (falls back to 13 if that file is absent)
   --domain DOMAIN               required for --profile server
   --contact EMAIL                required for --profile server
 USAGE
@@ -27,7 +29,7 @@ VERSION=$2
 shift 2
 
 PROFILE=dev
-POSTGRES_VERSION=13.0
+POSTGRES_VERSION=
 DOMAIN=
 CONTACT=
 
@@ -59,6 +61,14 @@ fi
 if [ "$PROFILE" = "dev" ] && [ ! -f "$REPO_ROOT/templates/$VERSION/odoo_debug/Dockerfile" ]; then
     echo "No debug image available for version '$VERSION' (expected templates/$VERSION/odoo_debug/Dockerfile)" >&2
     exit 1
+fi
+
+if [ -z "$POSTGRES_VERSION" ]; then
+    if [ -f "$REPO_ROOT/templates/$VERSION/postgres-version.default" ]; then
+        POSTGRES_VERSION=$(cat "$REPO_ROOT/templates/$VERSION/postgres-version.default")
+    else
+        POSTGRES_VERSION=13
+    fi
 fi
 
 INSTANCE_DIR="$HOME/dockers/$INSTANCE"

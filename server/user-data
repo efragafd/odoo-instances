@@ -3,7 +3,7 @@
 INSTANCE='leyfra-test'
 DOMAIN='test.leyfra.com'
 ODOO_VERSION='14.0'
-POSTGRES_VERSION='13.0'
+POSTGRES_VERSION='13'
 
 DOCKERS_DIR='/root/dockers'
 
