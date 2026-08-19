@@ -1,6 +1,6 @@
 # Migration Plan: unify `odoo-server-instances` into `odoo-instances`
 
-Status: **proposed** — awaiting go-ahead on Phase 0
+Status: **in progress** — Phase 0 complete, awaiting go-ahead on Phase 1
 Drafted: 2026-08-19
 Scope: merge the VPS deployment tooling into this repo, modernize the runtime, add Odoo 17/18/19, and document everything.
 
@@ -110,11 +110,11 @@ Compose already interpolates `${INSTANCE}`, `${ODOO_VERSION}`, `${POSTGRES_VERSI
 
 ### Phase 0 — consolidate what exists (no behaviour change)
 
-- [ ] Tag current `master` as `pre-merge` for rollback
-- [ ] Merge `origin/debug` → `master` (brings 16.0 + the debugpy templates)
-- [ ] `git subtree add --prefix=server <odoo-server-instances> master`
-- [ ] Delete `setup` (defect #1) and `instance-cp` (defect #2). `setup` is replaced in Phase 5; `instance-cp` depends on two scripts that were never committed.
-- [ ] Commit a `.gitignore` for `.vs/` (currently untracked noise)
+- [x] Tag current `master` as `pre-merge` for rollback
+- [x] Merge `origin/debug` → `master` (brings 16.0 + the debugpy templates)
+- [x] `git subtree add --prefix=server <odoo-server-instances> master`
+- [x] Delete `setup` (defect #1) and `instance-cp` (defect #2). `setup` is replaced in Phase 5; `instance-cp` depends on two scripts that were never committed.
+- [x] Commit a `.gitignore` for `.vs/` (currently untracked noise)
 
 ### Phase 1 — modernize the runtime
 
