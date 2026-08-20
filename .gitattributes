@@ -1,0 +1,4 @@
+# bin/ scripts are executed by bash under WSL2 — CRLF line endings break
+# their shebangs ("cannot execute: required file not found"). Force LF
+# regardless of platform checkout settings.
+bin/* text eol=lf
