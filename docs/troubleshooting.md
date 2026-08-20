@@ -9,7 +9,15 @@ You're missing the Compose v2 plugin, or something (a script, a
 `.vscode/tasks.json` you haven't updated) is still calling the removed v1
 binary. Everything in this repo uses `docker compose` (a Docker CLI
 subcommand, no hyphen) — see `docs/MIGRATION-PLAN.md` Phase 1. Install
-`docker-compose-plugin` (Docker Desktop bundles it already).
+Compose v2 (Docker Desktop bundles it already).
+
+On Ubuntu/Debian the package is **`docker-compose-v2`**, which pairs with
+the distro's `docker.io`. `docker-compose-plugin` is Docker's *own* APT
+repo's name for it — asking for that without having added Docker's
+repository fails with `E: Unable to locate package docker-compose-plugin`.
+Hit for real on a GCE Ubuntu 24.04 boot; `server/bootstrap/gce-startup.sh`
+uses the correct name and now verifies `docker compose version` works
+before continuing.
 
 ## Two local instances won't both come up on :8069
 

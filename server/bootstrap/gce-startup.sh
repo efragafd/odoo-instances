@@ -35,13 +35,28 @@ metadata() {
 # --- base packages -----------------------------------------------------
 
 apt-get update -y
+# docker-compose-v2 is the Ubuntu/Debian package that ships the Compose v2
+# CLI plugin, and it depends on docker.io — which is what we install here.
+# NOT docker-compose-plugin: that name only exists in Docker's own APT
+# repository, which this script deliberately doesn't add, so asking for it
+# fails with "Unable to locate package".
 apt-get install -y --no-install-recommends \
     vim \
     git \
     docker.io \
-    docker-compose-plugin
+    docker-compose-v2
 
 systemctl enable --now docker
+
+# Everything below shells out to `docker compose`. Verify it actually
+# resolves before continuing, so a packaging problem surfaces here with an
+# explanation instead of as a confusing failure three steps later.
+if ! docker compose version >/dev/null 2>&1; then
+    echo "FATAL: 'docker compose' is not available after installing docker-compose-v2." >&2
+    echo "Check that the 'universe' component is enabled for this image, or" >&2
+    echo "install Compose v2 by another route before re-running." >&2
+    exit 1
+fi
 
 # --- swap ----------------------------------------------------------------
 # A safety margin on small VMs (e.g. e2-medium's 4 GB) running Odoo + Postgres

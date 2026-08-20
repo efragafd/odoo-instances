@@ -27,7 +27,8 @@ fi
 
 if ! docker compose version >/dev/null 2>&1; then
     echo "The 'docker compose' plugin was not found. Docker Desktop bundles" >&2
-    echo "it; on Linux install docker-compose-plugin. Re-run once available." >&2
+    echo "it; on Ubuntu/Debian install docker-compose-v2 (docker-compose-plugin" >&2
+    echo "only exists if you've added Docker's own APT repo). Re-run once available." >&2
     exit 1
 fi
 
