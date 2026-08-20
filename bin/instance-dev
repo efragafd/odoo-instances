@@ -15,4 +15,13 @@ INSTANCE=$1;
 
 set -e;
 
-docker exec -it $INSTANCE odoo --http-port 8070 --db_host db --db_port 5432 --db_user odoo --db_password odoo ${@:2}
+# See instance-exec-odoo: the db password is profile-dependent.
+DB_PASSWORD=odoo
+INSTANCE_ENV="$HOME/dockers/$INSTANCE/.env"
+if [ -f "$INSTANCE_ENV" ]; then
+    # shellcheck disable=SC1090
+    . "$INSTANCE_ENV"
+    DB_PASSWORD=${DB_PASSWORD:-odoo}
+fi
+
+MSYS_NO_PATHCONV=1 docker exec -it $INSTANCE odoo --http-port 8070 --db_host db --db_port 5432 --db_user odoo --db_password "$DB_PASSWORD" ${@:2}

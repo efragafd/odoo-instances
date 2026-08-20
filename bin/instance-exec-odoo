@@ -14,9 +14,21 @@ INSTANCE=$1;
 DB=$2;
 set -e;
 
+# The db password differs by profile: local/dev use the literal "odoo" from
+# compose.yml, but the server profile generates a random one into the
+# instance's .env (Phase 4). Read it from there and fall back to "odoo",
+# rather than hardcoding a value that is wrong for server instances.
+DB_PASSWORD=odoo
+INSTANCE_ENV="$HOME/dockers/$INSTANCE/.env"
+if [ -f "$INSTANCE_ENV" ]; then
+    # shellcheck disable=SC1090
+    . "$INSTANCE_ENV"
+    DB_PASSWORD=${DB_PASSWORD:-odoo}
+fi
+
 # MSYS_NO_PATHCONV: on Git Bash for Windows, an argv token starting with
 # "/" (like /usr/bin/odoo, a path inside the container) gets silently
 # rewritten to a Windows path before docker ever sees it, breaking this
 # entirely. Harmless no-op on Linux/macOS. Verified against a real
 # instance during Phase 7 of docs/MIGRATION-PLAN.md.
-MSYS_NO_PATHCONV=1 docker exec -it $INSTANCE /usr/bin/odoo --no-http --db_host db --db_port 5432 --db_user odoo --db_password odoo --stop-after-init -d $DB ${@:3}
+MSYS_NO_PATHCONV=1 docker exec -it $INSTANCE /usr/bin/odoo --no-http --db_host db --db_port 5432 --db_user odoo --db_password "$DB_PASSWORD" --stop-after-init -d $DB ${@:3}
