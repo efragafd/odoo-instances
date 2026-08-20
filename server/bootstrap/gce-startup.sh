@@ -106,17 +106,32 @@ docker compose -f "$REPO_DIR/server/proxy/compose.yml" \
 
 ODOO_INSTANCE=$(metadata odoo-instance)
 
-if [ -n "$ODOO_INSTANCE" ] && [ ! -d "$HOME/dockers/$ODOO_INSTANCE" ]; then
-    ODOO_DOMAIN=$(metadata odoo-domain)
-    ODOO_CONTACT=$(metadata odoo-contact)
-    ODOO_VERSION=$(metadata odoo-version)
-    ODOO_VERSION=${ODOO_VERSION:-19.0}
+if [ -n "$ODOO_INSTANCE" ]; then
+    if [ ! -d "$HOME/dockers/$ODOO_INSTANCE" ]; then
+        ODOO_DOMAIN=$(metadata odoo-domain)
+        ODOO_CONTACT=$(metadata odoo-contact)
+        ODOO_VERSION=$(metadata odoo-version)
+        ODOO_VERSION=${ODOO_VERSION:-19.0}
 
-    if [ -z "$ODOO_DOMAIN" ] || [ -z "$ODOO_CONTACT" ]; then
-        echo "odoo-instance metadata is set but odoo-domain/odoo-contact are missing — skipping instance creation" >&2
+        if [ -z "$ODOO_DOMAIN" ] || [ -z "$ODOO_CONTACT" ]; then
+            echo "odoo-instance metadata is set but odoo-domain/odoo-contact are missing — skipping instance creation" >&2
+        else
+            "$REPO_DIR/bin/instance-new" "$ODOO_INSTANCE" "$ODOO_VERSION" \
+                --profile server --domain "$ODOO_DOMAIN" --contact "$ODOO_CONTACT"
+        fi
     else
-        "$REPO_DIR/bin/instance-new" "$ODOO_INSTANCE" "$ODOO_VERSION" \
-            --profile server --domain "$ODOO_DOMAIN" --contact "$ODOO_CONTACT"
+        # The instance directory already exists — but that does NOT mean the
+        # instance is running. A previous run that was interrupted partway
+        # (e.g. an SSH session dropped during the multi-GB Odoo image pull)
+        # leaves the directory behind with no containers, and a bare
+        # "does the directory exist" guard would then skip it on every
+        # subsequent run, forever. Converge instead: bring it up. This is a
+        # no-op when it's already running.
+        echo "Instance '$ODOO_INSTANCE' already exists — ensuring it is up..."
+        if ! "$REPO_DIR/bin/instance-up" "$ODOO_INSTANCE"; then
+            echo "WARNING: '$ODOO_INSTANCE' exists but could not be started." >&2
+            echo "Inspect it with: docker compose logs, or instance-status $ODOO_INSTANCE" >&2
+        fi
     fi
 fi
 
